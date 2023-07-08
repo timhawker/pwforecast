@@ -6,7 +6,6 @@ import pprint
 from dateutil import parser
 
 
-
 # TODO: Calculate required energy by looking at average historic usage during peak-rate between certain time period.
 
 
