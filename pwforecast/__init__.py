@@ -274,7 +274,7 @@ class PwForecast(object):
                 msg = 'Setting peak mode, attempt {i} of {total}'
                 print(msg.format(i=i, total=self.global_retry))
                 # set the peak reserve
-                status = self._set_backup_reserve_percent(self.min_reserve_peak_rate)
+                status = self.set_backup_reserve_percent(self.min_reserve_peak_rate)
                 self._print_summary(**status)
             except Exception as e:
                 if i == self.global_retry:
@@ -331,11 +331,11 @@ class PwForecast(object):
             solar_forecast (float): The solar forecast in Wh.
 
         """
-        print('-' * 20)
+        print('-' * 35)
         if solar_forecast:
             print('Solar forecast tomorrow: {:.1f}kWh'.format(solar_forecast/1000))
         print('Powerwall state of charge: {:.1f}%'.format(soc))
         print('Powerwall backup reserve: {}%'.format(reserve))
         print('Powerwall capacity: {:.2f}kWh'.format(capacity/1000))
         print('Powerwall state of health: {:.1f}%'.format(soh))
-        print('-' * 20)
+        print('-' * 35)

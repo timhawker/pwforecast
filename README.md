@@ -53,13 +53,23 @@ with teslapy.Tesla(email=tesla_email) as tesla:
 ## Setting Peak Mode
 
 Use this method when your peak rate starts. You can configure what backup reserve the Powerwall can discharge down
-to by setting the `min_reserve_peak_rate` value. 
-
-PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#retry-logic) for more info. 
+to by setting the `min_reserve_peak_rate` value.
 
 ```python
 pw_forecast.min_reserve_peak_rate = 10  # Default 20
 pw_forecast.set_peak_mode()
+```
+
+PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#retry-logic) for more info. 
+
+A summary report will then be printed:
+```text
+-----------------------------------
+Powerwall state of charge: 19.7%
+Powerwall backup reserve: 100%
+Powerwall capacity: 26.59kWh
+Powerwall state of health: 95.0%
+-----------------------------------
 ```
 
 
@@ -70,8 +80,6 @@ Use this method when your off-peak rate starts. This requires a little more conf
  * Configure the maximum backup reserve allowed by setting the 'max_reserve' attribute. 
  * Configure the amount of energy you require during the peak-rate.
 
-PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#retry-logic) for more info. 
-
 ```python
 pw_forecast.min_reserve_off_peak_rate = 25  # Default 30
 pw_forecast.max_reserve = 95  # Default 100
@@ -79,6 +87,18 @@ pw_forecast.required_energy_peak_rate = 20000  # Default 30000
 pw_forecast.set_off_peak_mode()
 ```
 
+PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#retry-logic) for more info. 
+
+A summary report will then be printed:
+```text
+-----------------------------------
+Solar forecast tomorrow: 10.2kWh
+Powerwall state of charge: 19.7%
+Powerwall backup reserve: 100%
+Powerwall capacity: 26.59kWh
+Powerwall state of health: 95.0%
+-----------------------------------
+```
 
 ## Retry Logic
 
