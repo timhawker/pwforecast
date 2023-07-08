@@ -5,7 +5,7 @@ A Python module to charge/discharge Powerwall based on solar forecast and peak/o
 Utilises the excellent [TeslaPy](https://tesla-api.timdorr.com/) by Tim Dorssers.
 
 PwForecast is primarily designed for those with dual rate tariffs. If there is interest in expanding this to provide
-more flexible control for those with more complex tariffs, please let me know. 
+more flexible control for those with more complex tariffs, please let me know.
 
 [![Version](https://img.shields.io/pypi/v/pwforecast)](https://pypi.org/project/pwforecast)
 
@@ -20,6 +20,9 @@ authentication enabled.
 
 Rather than wrap [TeslaPy](https://tesla-api.timdorr.com/), PwForecast requires an instance of a Tesla class passed to 
 it. This allows you to configure the object based on your credentials before passing to PwForecast.  
+
+When using PwForecast, Self Powered mode is recommended. Time Based Control could be used if you need to charge
+faster than 1.7kW per Powerwall, but results may be unpredictable. 
 
 
 ## Overview 
