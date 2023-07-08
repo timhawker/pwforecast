@@ -6,8 +6,7 @@ import parser
 import pprint
 
 
-# TODO: Publish python package on pypi.
-# TODO: Calculate
+# TODO: Calculate required energy by looking at average historic usage during peak-rate between certain time period.
 
 
 class PwForecast(object):
