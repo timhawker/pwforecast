@@ -13,5 +13,5 @@ setuptools.setup(
     url='https://github.com/timhawker/pwforecast',
     long_description_content_type='text/markdown',
     long_description=long_description,
-    packages=['pwforecast']
+    py_modules=['pwforecast']
 )
