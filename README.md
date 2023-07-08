@@ -53,7 +53,9 @@ with teslapy.Tesla(email=tesla_email) as tesla:
 ## Setting Peak Mode
 
 Use this method when your peak rate starts. You can configure what backup reserve the Powerwall can discharge down
-to by setting the `min_reserve_peak_rate` value.
+to by setting the `min_reserve_peak_rate` value. 
+
+PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#-Retry-Logic) for more info. 
 
 ```python
 pw_forecast.min_reserve_peak_rate = 10  # Default 20
@@ -66,9 +68,9 @@ pw_forecast.set_peak_mode()
 Use this method when your off-peak rate starts. This requires a little more configuration.
  * Configure what backup reserve the Powerwall can discharge down to by setting the 'min_reserve_off_peak_rate' attribute.
  * Configure the maximum backup reserve allowed by setting the 'max_reserve' attribute. 
- * Configure the amount of energy you require during the peak-rate. 
+ * Configure the amount of energy you require during the peak-rate.
 
-TODO: ADD BIT ABOUT TAKING 20 SECONDS, SHOW OUTPUT
+PwForecast will try to ensure power flow behaves as expected. Please see [Retry Logic](#-Retry-Logic) for more info. 
 
 ```python
 pw_forecast.min_reserve_off_peak_rate = 25  # Default 30
