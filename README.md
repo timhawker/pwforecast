@@ -49,7 +49,6 @@ with teslapy.Tesla(email=tesla_email) as tesla:
 ```
 
 
-
 ## Setting Peak Mode
 
 Use this method when your peak rate starts. You can configure what backup reserve the Powerwall can discharge down
