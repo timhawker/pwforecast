@@ -11,12 +11,12 @@ requirements = (this_directory / 'requirements.txt').read_text().split('\n')
 
 setuptools.setup(
     name='pwforecast',
-    version='0.1.8',
+    version='0.1.9',
     author='Tim Hawker',
     description='A Python module to charge/discharge Powerwall based on solar forecast and peak/off peak tariffs.',
     url='https://github.com/timhawker/pwforecast',
     long_description_content_type='text/markdown',
     long_description=readme,
     packages=['pwforecast'],
-    requires=requirements
+    install_requires=requirements
 )
