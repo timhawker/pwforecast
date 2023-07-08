@@ -7,6 +7,8 @@ Utilises the excellent [TeslaPy](https://tesla-api.timdorr.com/) by Tim Dorssers
 PwForecast is primarily designed for those with dual rate tariffs. If there is interest in expanding this to provide
 more flexible control for those with more complex tariffs, please let me know. 
 
+[![Version](https://img.shields.io/pypi/v/pwforecast)](https://pypi.org/project/pwforecast)
+
 
 ## Getting Started
 
