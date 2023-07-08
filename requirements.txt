@@ -1,0 +1,4 @@
+tzlocal
+TeslaPy
+requests
+python-dateutil
