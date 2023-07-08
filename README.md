@@ -74,10 +74,14 @@ Powerwall state of health: 95.0%
 
 ## Setting Off-Peak Mode
 
-Use this method when your off-peak rate starts. This requires a little more configuration.
+Use this method when your off-peak rate starts. This requires a little more setup.
  * Configure what backup reserve the Powerwall can discharge down to by setting the `min_reserve_off_peak_rate` attribute.
  * Configure the maximum backup reserve allowed by setting the `max_reserve` attribute. 
  * Configure the amount of energy you require during the peak-rate by setting the `required_energy_peak_rate` attribute.
+
+When setting peak mode, PwForecast will determine how much solar will be generated tomorrow. It will then calculate how 
+much to fill the batteries based on the remaining energy requirement that solar will not satisfy. If solar generation
+completely satisfies `required_energy_peak_rate`, the backup reserve will be set to `min_reserve_off_peak_rate`. 
 
 ```python
 pw_forecast.min_reserve_off_peak_rate = 25  # Default 30
