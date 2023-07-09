@@ -1,6 +1,6 @@
 ## PwForecast
 
-A Python module to charge/discharge Powerwall based on solar forecast and peak/off-peak tariffs. 
+A Python module to charge/discharge Tesla Powerwall based on solar forecast and peak/off-peak tariffs. 
 
 Utilises the excellent [TeslaPy](https://github.com/tdorssers/TeslaPy) by Tim Dorssers.
 
