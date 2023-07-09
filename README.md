@@ -83,6 +83,9 @@ When setting peak mode, PwForecast will determine how much solar will be generat
 much to fill the batteries based on the remaining energy requirement that solar will not satisfy. If solar generation
 completely satisfies `required_energy_peak_rate`, the backup reserve will be set to `min_reserve_off_peak_rate`. 
 
+`get_solar_forecast_tomorrow` is called internally as part of `set_off_peak_mode`. This will consume a Solcast API call 
+per site ID you have provided. 
+
 ```python
 pw_forecast.min_reserve_off_peak_rate = 25  # Default 30
 pw_forecast.max_reserve = 95  # Default 100
@@ -102,6 +105,18 @@ Powerwall capacity: 26.59kWh
 Powerwall state of health: 95.0%
 -----------------------------------
 ```
+
+
+## Getting Solar Forecast
+
+If you're only interested in getting the solar forecast, you can call `get_solar_forecast_tomorrow`. This will
+consume a Solcast API call per site ID you have provided. The value returned will be an int of the estimated
+solar forecast tomorrow in Wh.
+
+```python
+pw_forecast.get_solar_forecast_tomorrow()
+```
+
 
 ## Retry Logic
 
