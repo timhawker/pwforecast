@@ -1,3 +1,10 @@
+"""
+A Python module to charge/discharge Powerwall based on solar forecast and peak/off-peak tariffs.
+
+"""
+
+# Author: Tim Hawker
+
 import time
 import tzlocal
 import datetime

@@ -1,19 +1,19 @@
 import setuptools
 from pathlib import Path
 
-this_directory = Path(__file__).parent
-
 # read the contents of README file
+this_directory = Path(__file__).parent
 readme = (this_directory / 'README.md').read_text()
 
 setuptools.setup(
     name='pwforecast',
-    version='1.1.1',
+    version='1.1.2',
     author='Tim Hawker',
-    description='A Python module to charge/discharge Powerwall based on solar forecast and peak/off peak tariffs.',
+    license='MIT',
     url='https://github.com/timhawker/pwforecast',
+    description='A Python module to charge/discharge Powerwall based on solar forecast and peak/off peak tariffs.',
     long_description_content_type='text/markdown',
     long_description=readme,
-    packages=['pwforecast'],
+    py_modules=['pwforecast'],
     install_requires=['tzlocal', 'requests', 'python-dateutil', 'TeslaPy']
 )
