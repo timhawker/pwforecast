@@ -18,8 +18,8 @@ PwForecast requires a Solcast API key and Site ID. You can sign up for a
 [TeslaPy](https://tesla-api.timdorr.com/) has great documentation on getting started. It even works with two-factor
 authentication enabled.
 
-Rather than wrap [TeslaPy](https://tesla-api.timdorr.com/), PwForecast requires an instance of a Tesla class passed to 
-it. This allows you to configure the object based on your credentials before passing to PwForecast.  
+Rather than inherit [TeslaPy](https://tesla-api.timdorr.com/), PwForecast requires an instance of a Tesla class passed 
+to it. This allows you to configure the object based on your credentials before passing to PwForecast.  
 
 When using PwForecast, Self Powered mode is recommended. Time Based Control could be used if you need to charge
 faster than 1.7kW per Powerwall, but results may be unpredictable. 
@@ -111,13 +111,17 @@ issue, although waiting upwards of 45 minutes does sometimes result in power flo
 Re-applying the setting does appear to fix this issue. Perhaps the unofficial Tesla API is missing a commit command. 
 Please do let me know if you have any ideas. 
 
-Calling `set_peak_mode` and `set_off_peak_mode` will set the backup reserve, wait 20 seconds, and then check site power 
-flow to confirm the setting has been applied. If an incorrect power flow is detected, the method will retry up to the 
-`reserve_retry` limit. If the `retry_limit` is reached, an exception will be raised. PwForecast will then attempt to 
-apply the setting up to the `global_retry` limit, eventually raising an exception. 
+Calling `set_peak_mode` and `set_off_peak_mode` will set the backup reserve, wait 20 seconds, and then check site 
+power flow to confirm the setting has been applied. If an incorrect power flow is detected, the method will retry 
+up to the `set_backup_reserve_retry_limit` limit. If the `set_backup_reserve_retry_limit` is reached, an exception 
+will be raised and caught by the global retry logic. PwForecast will then attempt to re-apply the setting up to the 
+`global_retry_limit` limit, eventually raising an exception. 
 
-Both `reserve_retry` and `global_retry` can be configured on the PwForecast instance. The `reserve_retry` has been 
-split from the `global_retry` to try and avoid exhausting Solcast API calls. 
+Both `set_backup_reserve_retry_limit` and `global_retry_limit` can be configured on the PwForecast instance. The 
+`set_backup_reserve_retry_limit` has been split from the `global_retry_limit` to try and avoid exhausting Solcast API calls. 
+
+The amount of time between each `global_retry` can be configured via `global_retry_sleep`. The amount of time 
+between each `set_backup_reserve_retry_limit` can be configured via `set_backup_reserve_response_sleep`.
 
 
 ## Advanced Configuration
