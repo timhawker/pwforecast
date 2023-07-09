@@ -18,8 +18,8 @@ PwForecast requires a Solcast API key and Site ID. You can sign up for a
 [TeslaPy](https://github.com/tdorssers/TeslaPy) has great documentation on getting started. It even works with two-factor
 authentication enabled.
 
-Rather than inherit [TeslaPy](https://github.com/tdorssers/TeslaPy), PwForecast requires an instance of a Tesla class passed 
-to it. This allows you to configure the object based on your credentials before passing to PwForecast.  
+Rather than inherit, PwForecast requires an instance of a [TeslaPy](https://github.com/tdorssers/TeslaPy) Tesla class 
+passed to it. This allows you to configure the object based on your credentials before passing to PwForecast.  
 
 When using PwForecast, Self Powered mode is recommended. Time Based Control could be used if you need to charge
 faster than 1.7kW per Powerwall, but results may be unpredictable. 
