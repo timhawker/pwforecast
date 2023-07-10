@@ -120,8 +120,8 @@ class PwForecast(object):
         total_energy_kwh = 0.0
         for solcast_site_name, solcast_site_id in self._solcast_site_ids.items():
             result = requests.get(url.format(site_id=solcast_site_id,
-                                             api_key=self._solcast_api_key,
-                                             timeout=self.request_timeout)).json()
+                                             api_key=self._solcast_api_key),
+                                  timeout=self.request_timeout).json()
 
             # get tomorrow start and end dates
             now = datetime.datetime.now(tz=self.timezone)
