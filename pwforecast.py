@@ -13,7 +13,8 @@ import pprint
 from dateutil import parser
 
 
-# TODO: Calculate required energy by looking at average historic usage during peak-rate between certain time period.
+# TODO: Calculate required energy by looking at average historic usage during peak-rate
+#  between certain time period.
 
 
 class PwForecast(object):
@@ -43,6 +44,8 @@ class PwForecast(object):
             charging your batteries to 100%, you can set this value. Default 100.
         timezone (datetime.tzinfo): The tzdata timezone the system sits within. Will use
             timezone from system by default.
+        request_timeout (int): The maximum amount of time in seconds to wait when sending
+            a request using requests.get. Default 10.
         required_energy_peak_rate (int): The amount of energy required during peak rate
             in Wh. When setting peak mode, PwForecast will determine how much solar will
             be generated. It will then calculate how much to fill the batteries based on
@@ -93,6 +96,7 @@ class PwForecast(object):
 
         # advanced configuration
         self.timezone = tzlocal.get_localzone()
+        self.request_timeout = 10
         self.global_retry_limit = 5
         self.global_retry_sleep = 30
         self.set_backup_reserve_retry_limit = 5
@@ -116,7 +120,8 @@ class PwForecast(object):
         total_energy_kwh = 0.0
         for solcast_site_name, solcast_site_id in self._solcast_site_ids.items():
             result = requests.get(url.format(site_id=solcast_site_id,
-                                             api_key=self._solcast_api_key)).json()
+                                             api_key=self._solcast_api_key,
+                                             timeout=self.request_timeout)).json()
 
             # get tomorrow start and end dates
             now = datetime.datetime.now(tz=self.timezone)
