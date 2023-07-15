@@ -14,10 +14,6 @@ import pprint
 from dateutil import parser
 
 
-# TODO: Syntax problems
-# TODO: Fix bug in calculate percentage: min_reserve_peak_rate
-# TODO: Add discharge_efficiency variable
-# TODO: Add visible_pack_energy variable
 # TODO: Calculate required energy by looking at average historic usage during
 #  peak-rate between certain time period.
 
@@ -90,6 +86,15 @@ class PwForecast(object):
         full_pack_energy (int): The full pack energy in Wh of a brand-new
             Powerwall. This is used to calculate the overall state of health of
             all batteries in the system. Default 14000.
+        visible_pack_energy (float): Visible pack energy to take into account
+            when calculating a charge percentage for peak rate. This is
+            required because the app hides the bottom 5% of available energy.
+            When the battery is at 5%, the app shows 0%. Default 0.95.
+        discharge_efficiency (float): The efficiency loss to take into account
+            when calculating how much energy is needed for peak rate. According
+            to the Powerwall specs, it has an overall charge/discharge
+            efficiency of 90%. We therefore assume a discharge efficiency of
+            95%. Default 0.95.
 
     """
     def __init__(self, teslapy_session, solcast_api_key, solcast_site_ids):
@@ -115,6 +120,8 @@ class PwForecast(object):
         self.reserve_switch_margin = 100
         self.charge_margin = 1
         self.full_pack_energy = 14000
+        self.visible_pack_energy = 0.95
+        self.discharge_efficiency = 0.95
 
     # solcast
     def get_solar_forecast_tomorrow(self):
@@ -178,7 +185,7 @@ class PwForecast(object):
             charged/discharged to based on.
 
         """
-        # get the battery, which is a class representing the site
+        # get the battery, which is a class representing the site.
         battery_list = self._teslapy_session.battery_list()
         assert len(battery_list) == 1, 'More than one battery list returned!'
         battery = battery_list[0]
@@ -186,9 +193,15 @@ class PwForecast(object):
         battery_data = battery.get_battery_data()
         total_pack_energy = battery_data['total_pack_energy']
 
+        # calculate available energy.
+        availability_factor = (self.visible_pack_energy
+                               + self.discharge_efficiency) / 2
+        available_pack_energy = total_pack_energy * availability_factor
+
+        # fill the Powerwall until required energy is satisfied.
         available_energy = forecast_production
-        charge_percent = self.min_reserve_peak_rate
-        pack_energy_increment = total_pack_energy / 100
+        charge_percent = self.min_reserve_off_peak_rate
+        pack_energy_increment = available_pack_energy / 100
         while available_energy < self.required_energy_peak_rate:
             available_energy += pack_energy_increment
             charge_percent += 1
