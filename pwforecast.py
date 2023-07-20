@@ -194,8 +194,8 @@ class PwForecast(object):
         total_pack_energy = battery_data['total_pack_energy']
 
         # calculate available energy.
-        availability_factor = (self.visible_pack_energy
-                               + self.discharge_efficiency) / 2
+        factors = [self.visible_pack_energy, self.discharge_efficiency]
+        availability_factor = sum(factors) - (len(factors) - 1)
         available_pack_energy = total_pack_energy * availability_factor
 
         # fill the Powerwall until required energy is satisfied.
