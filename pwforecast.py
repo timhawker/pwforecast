@@ -99,8 +99,18 @@ class PwForecast(object):
     """
     def __init__(self, teslapy_session, solcast_api_key, solcast_site_ids):
 
+        # get the battery, which is a class representing the site.
+        battery_list = teslapy_session.battery_list()
+        assert len(battery_list) == 1, 'More than one battery list returned!'
+        battery = battery_list[0]
+
+        # fetch battery data to populate the battery dictionary
+        battery.get_battery_data()
+        assert battery['battery_count'] > 0, 'No batteries detected!'
+
         # internal vars
         self._teslapy_session = teslapy_session
+        self._battery = battery
         self._solcast_api_key = solcast_api_key
         self._solcast_site_ids = solcast_site_ids
 
@@ -185,13 +195,7 @@ class PwForecast(object):
             charged/discharged to based on.
 
         """
-        # get the battery, which is a class representing the site.
-        battery_list = self._teslapy_session.battery_list()
-        assert len(battery_list) == 1, 'More than one battery list returned!'
-        battery = battery_list[0]
-
-        battery_data = battery.get_battery_data()
-        total_pack_energy = battery_data['total_pack_energy']
+        total_pack_energy = self._battery['total_pack_energy']
 
         # calculate available energy.
         factors = [self.visible_pack_energy, self.discharge_efficiency]
@@ -234,38 +238,31 @@ class PwForecast(object):
         # cast to int in case a float is provided
         percent_target = int(percent_target)
 
-        # get the battery, which is a class representing the site
-        battery_list = self._teslapy_session.battery_list()
-        assert len(battery_list) == 1, 'More than one battery list returned!'
-        battery = battery_list[0]
-        battery_data = {}
+        # calculate pack state of health for summary report
+        total_pack_energy = self._battery['total_pack_energy']
+        battery_count = self._battery['battery_count']
+        pack_soh = ((100 / (self.full_pack_energy * battery_count))
+                    * total_pack_energy)
 
         # loop to allow reserve retries
+        battery_data = {}
         for index in range(1, self.set_backup_reserve_retry_limit+1):
 
             # set the battery reserve
             print('Setting backup reserve to {}%, attempt {} of {}'.format(
                 percent_target, index, self.set_backup_reserve_retry_limit))
-            battery.set_backup_reserve_percent(percent_target)
+            self._battery.set_backup_reserve_percent(percent_target)
 
             # sleep to let the devices update and api sync
             time.sleep(self.set_backup_reserve_response_sleep)
 
-            # check to see if the battery charge/discharge state has correctly
-            # changed
-            battery_data = battery.get_battery_data()
-            msg = 'More than one power reading returned!'
-            assert len(battery_data['power_reading']) == 1, msg
-            total_pack_energy = battery_data['total_pack_energy']
-            battery_count = battery_data['battery_count']
-            assert battery_count > 0, 'No batteries detected!'
-            pack_soh = ((100
-                         / (self.full_pack_energy * battery_count))
-                        * total_pack_energy)
-            percent_charged = battery_data['percentage_charged']
-            power_reading = battery_data['power_reading'][0]
-            battery_power = power_reading['battery_power']
-            solar_power = power_reading['solar_power']
+            # get live site data to monitor power flow. site data contains
+            # all that we need with a smaller payload than get_battery_data(),
+            # so let's be kind to tesla servers.
+            live_site_data = self._battery.api('SITE_DATA')['response']
+            percent_charged = live_site_data['percentage_charged']
+            battery_power = live_site_data['battery_power']
+            solar_power = live_site_data['solar_power']
 
             # battery within charge margin, set reserve percent and don't check
             # power flow as it can lead to false positives.
@@ -310,8 +307,8 @@ class PwForecast(object):
                     break
 
             else:
-                print('Incorrect charge/discharge state')
-                pprint.pprint(power_reading)
+                print('Incorrect charge/discharge state. Site data:')
+                pprint.pprint(live_site_data)
 
         # no break
         else:
