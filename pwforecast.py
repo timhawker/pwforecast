@@ -99,18 +99,10 @@ class PwForecast(object):
     """
     def __init__(self, teslapy_session, solcast_api_key, solcast_site_ids):
 
-        # get the battery, which is a class representing the site.
-        battery_list = teslapy_session.battery_list()
-        assert len(battery_list) == 1, 'More than one battery list returned!'
-        battery = battery_list[0]
-
-        # fetch battery data to populate the battery dictionary
-        battery.get_battery_data()
-        assert battery['battery_count'] > 0, 'No batteries detected!'
-
-        # internal vars
+        # internal vars, querying the API is deferred so that errors can
+        # be caught by method retry logic.
         self._teslapy_session = teslapy_session
-        self._battery = battery
+        self._cached_teslapy_battery = None
         self._solcast_api_key = solcast_api_key
         self._solcast_site_ids = solcast_site_ids
 
@@ -195,7 +187,7 @@ class PwForecast(object):
             charged/discharged to based on.
 
         """
-        total_pack_energy = self._battery['total_pack_energy']
+        total_pack_energy = self._teslapy_battery['total_pack_energy']
 
         # calculate available energy.
         factors = [self.visible_pack_energy, self.discharge_efficiency]
@@ -233,14 +225,20 @@ class PwForecast(object):
         Raises:
             Exception: If an invalid charge state is detected and the retry
                 limit has been reached.
+            AssertionError: If no batteries are detected.
 
         """
         # cast to int in case a float is provided
         percent_target = int(percent_target)
 
+        # get battery data, which updates the battery object
+        self._teslapy_battery.get_battery_data()
+        msg = 'No batteries detected!'
+        assert self._teslapy_battery['battery_count'] > 0, msg
+
         # calculate pack state of health for summary report
-        total_pack_energy = self._battery['total_pack_energy']
-        battery_count = self._battery['battery_count']
+        total_pack_energy = self._teslapy_battery['total_pack_energy']
+        battery_count = self._teslapy_battery['battery_count']
         pack_soh = ((100 / (self.full_pack_energy * battery_count))
                     * total_pack_energy)
 
@@ -251,7 +249,7 @@ class PwForecast(object):
             # set the battery reserve
             print('Setting backup reserve to {}%, attempt {} of {}'.format(
                 percent_target, index, self.set_backup_reserve_retry_limit))
-            self._battery.set_backup_reserve_percent(percent_target)
+            self._teslapy_battery.set_backup_reserve_percent(percent_target)
 
             # sleep to let the devices update and api sync
             time.sleep(self.set_backup_reserve_response_sleep)
@@ -259,7 +257,7 @@ class PwForecast(object):
             # get live site data to monitor power flow. site data contains
             # all that we need with a smaller payload than get_battery_data(),
             # so let's be kind to tesla servers.
-            live_site_data = self._battery.api('SITE_DATA')['response']
+            live_site_data = self._teslapy_battery.api('SITE_DATA')['response']
             percent_charged = live_site_data['percentage_charged']
             battery_power = live_site_data['battery_power']
             solar_power = live_site_data['solar_power']
@@ -301,7 +299,7 @@ class PwForecast(object):
                 # behaviour.
                 if index < 2:
                     msg = ('Reapplying setting to try and ensure Powerwall '
-                           'willstop discharging at set reserve.')
+                           'will stop discharging at set reserve.')
                     print(msg)
                 else:
                     break
@@ -386,6 +384,31 @@ class PwForecast(object):
                 time.sleep(self.global_retry_sleep)
             else:
                 break
+
+    @property
+    def _teslapy_battery(self):
+        """
+        A cache of the teslapy.Battery object. The battery object represents
+        the site and contains all Powerwalls associated with the Gateway.
+
+        Returns:
+            teslapy.Battery: The battery object.
+
+        Raises:
+            AssertionError: If more than one battery is returned.
+
+        """
+        if self._cached_teslapy_battery is None:
+
+            # get the battery, which is a class representing the site.
+            battery_list = self._teslapy_session.battery_list()
+            msg = 'More than one battery returned: {}'
+            assert len(battery_list) == 1, msg.format(battery_list)
+            battery = battery_list[0]
+
+            self._cached_teslapy_battery = battery
+
+        return self._cached_teslapy_battery
 
     # internal
     @staticmethod
