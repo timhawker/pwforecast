@@ -385,6 +385,7 @@ class PwForecast(object):
             else:
                 break
 
+    # internal
     @property
     def _teslapy_battery(self):
         """
@@ -400,7 +401,6 @@ class PwForecast(object):
         """
         if self._cached_teslapy_battery is None:
 
-            # get the battery, which is a class representing the site.
             battery_list = self._teslapy_session.battery_list()
             msg = 'More than one battery returned: {}'
             assert len(battery_list) == 1, msg.format(battery_list)
@@ -410,7 +410,6 @@ class PwForecast(object):
 
         return self._cached_teslapy_battery
 
-    # internal
     @staticmethod
     def _print_summary(soc, reserve, capacity, soh, solar_forecast=None):
         """
