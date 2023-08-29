@@ -191,7 +191,7 @@ class PwForecast(object):
         available_pack_energy = total_pack_energy * availability_factor
 
         # fill the Powerwall until required energy is satisfied. Start from
-        # what the min reserve that will be set when peak rate starts.
+        # what the min reserve will be set to when peak rate starts.
         available_energy = forecast_production
         charge_percent = self.min_reserve_peak_rate
         pack_energy_increment = available_pack_energy / 100
