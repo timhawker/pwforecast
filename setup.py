@@ -7,7 +7,7 @@ readme = (this_directory / 'README.md').read_text()
 
 setuptools.setup(
     name='pwforecast',
-    version='1.2.1',
+    version='1.2.2',
     author='Tim Hawker',
     license='MIT',
     url='https://github.com/timhawker/pwforecast',

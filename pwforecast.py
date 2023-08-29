@@ -14,10 +14,6 @@ import pprint
 from dateutil import parser
 
 
-# TODO: Calculate required energy by looking at average historic usage during
-#  peak-rate between certain time period.
-
-
 class PwForecast(object):
     """
     A tool that dynamically sets Powerwall backup reserve percent based on
@@ -194,15 +190,20 @@ class PwForecast(object):
         availability_factor = sum(factors) - (len(factors) - 1)
         available_pack_energy = total_pack_energy * availability_factor
 
-        # fill the Powerwall until required energy is satisfied.
+        # fill the Powerwall until required energy is satisfied. Start from
+        # what the min reserve that will be set when peak rate starts.
         available_energy = forecast_production
-        charge_percent = self.min_reserve_off_peak_rate
+        charge_percent = self.min_reserve_peak_rate
         pack_energy_increment = available_pack_energy / 100
         while available_energy < self.required_energy_peak_rate:
             available_energy += pack_energy_increment
             charge_percent += 1
             if charge_percent >= self.max_reserve:
                 break
+
+        # Check to see if calculated charge percent is lower than the
+        # allowed min. If it is, return the allowed min instead.
+        charge_percent = max(charge_percent, self.min_reserve_off_peak_rate)
 
         return int(charge_percent)
 
