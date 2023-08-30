@@ -201,9 +201,9 @@ class PwForecast(object):
             if charge_percent >= self.max_reserve:
                 break
 
-        # Check to see if calculated charge percent is lower than the
-        # allowed min. If it is, return the allowed min instead.
+        # Ensure that the calculated charge percent is within limits.
         charge_percent = max(charge_percent, self.min_reserve_off_peak_rate)
+        charge_percent = min(charge_percent, self.max_reserve)
 
         return int(charge_percent)
 
