@@ -14,6 +14,32 @@ import pprint
 from dateutil import parser
 
 
+def _battery_get_site_info(battery):
+    """
+    Retrieve current site/battery information.
+
+    Warnings:
+        This is a private function to provide functionality needed by
+        PwForecast. If folded into teslapy, this function will be removed.
+
+    """
+    battery.update(battery.api('SITE_CONFIG')['response'])
+    return battery
+
+
+def _battery_get_live_status(battery):
+    """
+    Retrieve current site/battery live status
+
+    Warnings:
+        This is a private function to provide functionality needed by
+        PwForecast. If folded into teslapy, this function will be removed.
+
+    """
+    battery.update(battery.api('SITE_DATA')['response'])
+    return battery
+
+
 class PwForecast(object):
     """
     A tool that dynamically sets Powerwall backup reserve percent based on
@@ -233,7 +259,7 @@ class PwForecast(object):
         percent_target = int(percent_target)
 
         # get battery data, which updates the battery object
-        self._teslapy_battery.get_battery_data()
+        _battery_get_site_info(self._teslapy_battery)
         msg = 'No batteries detected!'
         assert self._teslapy_battery['battery_count'] > 0, msg
 
@@ -258,10 +284,10 @@ class PwForecast(object):
             # get live site data to monitor power flow. site data contains
             # all that we need with a smaller payload than get_battery_data(),
             # so let's be kind to tesla servers.
-            live_site_data = self._teslapy_battery.api('SITE_DATA')['response']
-            percent_charged = live_site_data['percentage_charged']
-            battery_power = live_site_data['battery_power']
-            solar_power = live_site_data['solar_power']
+            _battery_get_live_status(self._teslapy_battery)
+            percent_charged = self._teslapy_battery['percentage_charged']
+            battery_power = self._teslapy_battery['battery_power']
+            solar_power = self._teslapy_battery['solar_power']
 
             # battery within charge margin, set reserve percent and don't check
             # power flow as it can lead to false positives.
@@ -307,7 +333,7 @@ class PwForecast(object):
 
             else:
                 print('Incorrect charge/discharge state. Site data:')
-                pprint.pprint(live_site_data)
+                pprint.pprint(self._teslapy_battery)
 
         # no break
         else:
