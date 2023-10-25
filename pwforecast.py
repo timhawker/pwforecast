@@ -105,9 +105,6 @@ class PwForecast(object):
             started charging when setting a backup reserve 0.7% less than
             current charge percentage, causing the reserve switch checking
             logic to fail. Default 1.
-        full_pack_energy (int): The full pack energy in Wh of a brand-new
-            Powerwall. This is used to calculate the overall state of health of
-            all batteries in the system. Default 14000.
         visible_pack_energy (float): Visible pack energy to take into account
             when calculating a charge percentage for peak rate. This is
             required because the app hides the bottom 5% of available energy.
@@ -143,7 +140,6 @@ class PwForecast(object):
         self.set_backup_reserve_response_sleep = 20
         self.reserve_switch_margin = 100
         self.charge_margin = 1
-        self.full_pack_energy = 14000
         self.visible_pack_energy = 0.95
         self.discharge_efficiency = 0.95
 
@@ -265,9 +261,8 @@ class PwForecast(object):
 
         # calculate pack state of health for summary report
         total_pack_energy = self._teslapy_battery['total_pack_energy']
-        battery_count = self._teslapy_battery['battery_count']
-        pack_soh = ((100 / (self.full_pack_energy * battery_count))
-                    * total_pack_energy)
+        nameplate_energy = self._teslapy_battery['nameplate_energy']
+        pack_soh = (100 / nameplate_energy) * total_pack_energy
 
         # loop to allow reserve retries
         battery_data = {}
@@ -288,6 +283,8 @@ class PwForecast(object):
             percent_charged = self._teslapy_battery['percentage_charged']
             battery_power = self._teslapy_battery['battery_power']
             solar_power = self._teslapy_battery['solar_power']
+            grid_power = self._teslapy_battery['grid_power']
+            load_power = self._teslapy_battery['load_power']
 
             # battery within charge margin, set reserve percent and don't check
             # power flow as it can lead to false positives.
@@ -333,7 +330,12 @@ class PwForecast(object):
 
             else:
                 print('Incorrect charge/discharge state. Site data:')
-                pprint.pprint(self._teslapy_battery)
+                power_state = {'percent_charged': percent_charged,
+                               'battery_power': battery_power,
+                               'solar_power': solar_power,
+                               'grid_power': grid_power,
+                               'load_power': load_power}
+                pprint.pprint(power_state)
 
         # no break
         else:
