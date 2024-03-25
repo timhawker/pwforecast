@@ -66,8 +66,6 @@ A summary report will then be printed:
 -----------------------------------
 Powerwall state of charge: 19.7%
 Powerwall backup reserve: 100%
-Powerwall capacity: 26.59kWh
-Powerwall state of health: 95.0%
 -----------------------------------
 ```
 
@@ -101,8 +99,6 @@ A summary report will then be printed:
 Solar forecast tomorrow: 10.2kWh
 Powerwall state of charge: 19.7%
 Powerwall backup reserve: 100%
-Powerwall capacity: 26.59kWh
-Powerwall state of health: 95.0%
 -----------------------------------
 ```
 
