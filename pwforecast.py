@@ -14,32 +14,6 @@ import pprint
 from dateutil import parser
 
 
-def _battery_get_site_info(battery):
-    """
-    Retrieve current site/battery information.
-
-    Warnings:
-        This is a private function to provide functionality needed by
-        PwForecast. If folded into teslapy, this function will be removed.
-
-    """
-    battery.update(battery.api('SITE_CONFIG')['response'])
-    return battery
-
-
-def _battery_get_live_status(battery):
-    """
-    Retrieve current site/battery live status
-
-    Warnings:
-        This is a private function to provide functionality needed by
-        PwForecast. If folded into teslapy, this function will be removed.
-
-    """
-    battery.update(battery.api('SITE_DATA')['response'])
-    return battery
-
-
 class PwForecast(object):
     """
     A tool that dynamically sets Powerwall backup reserve percent based on
@@ -205,12 +179,14 @@ class PwForecast(object):
             charged/discharged to based on.
 
         """
-        total_pack_energy = self._teslapy_battery['total_pack_energy']
+        # Get site info in order to have access to nameplate energy.
+        self._teslapy_battery.get_site_info()
+        nameplate_energy = self._teslapy_battery['nameplate_energy']
 
         # calculate available energy.
         factors = [self.visible_pack_energy, self.discharge_efficiency]
         availability_factor = sum(factors) - (len(factors) - 1)
-        available_pack_energy = total_pack_energy * availability_factor
+        available_pack_energy = nameplate_energy * availability_factor
 
         # fill the Powerwall until required energy is satisfied. Start from
         # what the min reserve will be set to when peak rate starts.
@@ -254,16 +230,6 @@ class PwForecast(object):
         # cast to int in case a float is provided
         percent_target = int(percent_target)
 
-        # get battery data, which updates the battery object
-        _battery_get_site_info(self._teslapy_battery)
-        msg = 'No batteries detected!'
-        assert self._teslapy_battery['battery_count'] > 0, msg
-
-        # calculate pack state of health for summary report
-        total_pack_energy = self._teslapy_battery['total_pack_energy']
-        nameplate_energy = self._teslapy_battery['nameplate_energy']
-        pack_soh = (100 / nameplate_energy) * total_pack_energy
-
         # loop to allow reserve retries
         battery_data = {}
         for index in range(1, self.set_backup_reserve_retry_limit+1):
@@ -276,10 +242,8 @@ class PwForecast(object):
             # sleep to let the devices update and api sync
             time.sleep(self.set_backup_reserve_response_sleep)
 
-            # get live site data to monitor power flow. site data contains
-            # all that we need with a smaller payload than get_battery_data(),
-            # so let's be kind to tesla servers.
-            _battery_get_live_status(self._teslapy_battery)
+            # get live site data to monitor power flow.
+            self._teslapy_battery.get_site_data()
             percent_charged = self._teslapy_battery['percentage_charged']
             battery_power = self._teslapy_battery['battery_power']
             solar_power = self._teslapy_battery['solar_power']
@@ -343,9 +307,7 @@ class PwForecast(object):
             raise Exception('Unable to switch battery mode correctly!')
 
         return {'soc': percent_charged,
-                'reserve': percent_target,
-                'capacity': total_pack_energy,
-                'soh': pack_soh}
+                'reserve': percent_target}
 
     # public
     def set_peak_mode(self):
@@ -431,7 +393,7 @@ class PwForecast(object):
         if self._cached_teslapy_battery is None:
 
             battery_list = self._teslapy_session.battery_list()
-            msg = 'More than one battery returned: {}'
+            msg = 'Battery list not 1: {}'
             assert len(battery_list) == 1, msg.format(battery_list)
             battery = battery_list[0]
 
@@ -440,7 +402,7 @@ class PwForecast(object):
         return self._cached_teslapy_battery
 
     @staticmethod
-    def _print_summary(soc, reserve, capacity, soh, solar_forecast=None):
+    def _print_summary(soc, reserve, solar_forecast=None):
         """
         Prints a status summary of the tesla site, including optional solar
         forecast.
@@ -448,8 +410,6 @@ class PwForecast(object):
         Args:
             soc (float): The Powerwall state of charge.
             reserve (float): The Powerwall backup reserve percentage.
-            capacity (float): The Powerwall total capacity in Wh.
-            soh (float): The Powerwall overall state of health percentage.
             solar_forecast (float): The solar forecast in Wh.
 
         """
@@ -459,6 +419,4 @@ class PwForecast(object):
                 solar_forecast/1000))
         print('Powerwall state of charge: {:.1f}%'.format(soc))
         print('Powerwall backup reserve: {}%'.format(reserve))
-        print('Powerwall capacity: {:.2f}kWh'.format(capacity/1000))
-        print('Powerwall state of health: {:.1f}%'.format(soh))
         print('-' * 35)

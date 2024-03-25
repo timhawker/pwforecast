@@ -1,4 +1,4 @@
 tzlocal
 requests
 python-dateutil
-TeslaPy
+TeslaPy>=2.9.0
